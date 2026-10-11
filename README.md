@@ -4,13 +4,14 @@ Reproducibility code for the manuscript:
 
 **Quarry expansion and forest-edge spectral change detected from Sentinel-2 time series: An eight-year land-cover degradation case study in northern Croatia**
 
-The repository contains a minimal public workflow for reconstructing the Sentinel-2 processing pipeline and the limited RF/SVM benchmark used in the revised manuscript. No Sentinel Hub credentials are stored in the repository.
+The repository contains a minimal public workflow for reconstructing the Sentinel-2 processing pipeline, the limited RF/SVM benchmark, and the threshold-sensitivity check used in the revised manuscript. No Sentinel Hub credentials are stored in the repository.
 
 ## What is included
 
 ```text
 scripts/reconstruct_article_ljubescica.py
 scripts/benchmark_rf_svm_manual_and_pseudo.py
+scripts/threshold_sensitivity_ljubescica.py
 requirements.txt
 ```
 
@@ -22,6 +23,8 @@ The benchmark script runs two checks:
 2. a pseudo-label transfer check trained on workflow-derived masks and evaluated on the manual endpoint masks.
 
 The second check is not independent validation. It is included only as a consistency and transfer check.
+
+The threshold-sensitivity script tests one-at-a-time perturbations around the calibrated NDVI, BSI, NDBI and standardized-distance settings. It caches Sentinel-2 monthly scenes locally so that the same downloaded scenes can be reused across sensitivity configurations.
 
 ## Setup
 
@@ -99,6 +102,32 @@ Manual endpoint masks should correspond to:
 ```
 
 The benchmark uses archived RGB proxy features from `*_visual_rgb.png` files. It should not be described as a full multi-band supervised validation experiment unless the script is modified to use the complete Sentinel-2 feature stack.
+
+## Run the threshold-sensitivity check
+
+The sensitivity script is designed to reduce Sentinel Hub requests by caching scenes first.
+
+Fill the cache gradually:
+
+```bash
+python scripts/threshold_sensitivity_ljubescica.py --download-only --max-downloads 10
+```
+
+Repeat the command until the growing-season cache is complete. Then run the local sensitivity analysis without additional downloads:
+
+```bash
+python scripts/threshold_sensitivity_ljubescica.py --skip-download --mode one_at_a_time
+```
+
+Main outputs:
+
+```text
+threshold_sensitivity_ljubescica/threshold_sensitivity_summary.csv
+threshold_sensitivity_ljubescica/threshold_sensitivity_monthly.csv
+threshold_sensitivity_ljubescica/threshold_sensitivity_run.json
+```
+
+The threshold-sensitivity check is a robustness check for dependence on calibrated thresholds. It should not be interpreted as making the workflow threshold-free.
 
 ## Data availability
 
