@@ -5,6 +5,7 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 RECONSTRUCT = ROOT / "scripts" / "reconstruct_article_ljubescica.py"
 BENCHMARK = ROOT / "scripts" / "benchmark_rf_svm_manual_and_pseudo.py"
+SENSITIVITY = ROOT / "scripts" / "threshold_sensitivity_ljubescica.py"
 
 
 def read(path: Path) -> str:
@@ -12,15 +13,16 @@ def read(path: Path) -> str:
 
 
 def test_public_scripts_are_valid_python():
-    for path in [RECONSTRUCT, BENCHMARK]:
+    for path in [RECONSTRUCT, BENCHMARK, SENSITIVITY]:
         ast.parse(read(path), filename=str(path))
 
 
-def test_reconstruction_uses_environment_credentials():
-    text = read(RECONSTRUCT)
-    assert 'os.getenv("SENTINELHUB_CLIENT_ID")' in text
-    assert 'os.getenv("SENTINELHUB_CLIENT_SECRET")' in text
-    assert re.search(r"CLIENT_(ID|SECRET)\s*=\s*['\"]", text) is None
+def test_public_scripts_use_environment_credentials():
+    for path in [RECONSTRUCT, SENSITIVITY]:
+        text = read(path)
+        assert 'os.getenv("SENTINELHUB_CLIENT_ID")' in text
+        assert 'os.getenv("SENTINELHUB_CLIENT_SECRET")' in text
+        assert re.search(r"CLIENT_(ID|SECRET)\s*=\s*['\"]", text) is None
 
 
 def test_article_parameters_are_locked_in_reconstruction_script():
@@ -37,6 +39,18 @@ def test_article_parameters_are_locked_in_reconstruction_script():
         "MASK_ARTIFACT_FRACTION_THR = 0.45",
         "MAX_REASONABLE_AREA_HA = 40.0",
         'MANUAL_EXCLUDE_MONTHS = {"2018-07", "2022-07"}',
+    ]
+    for item in expected:
+        assert item in text
+
+
+def test_threshold_sensitivity_script_documents_local_perturbations():
+    text = read(SENSITIVITY)
+    expected = [
+        "BASE_NDVI, BASE_BSI, BASE_NDBI, BASE_D = 30, 65, 65, 4.5",
+        "one_at_a_time",
+        "full_grid",
+        "same_interpretation_as_article",
     ]
     for item in expected:
         assert item in text
