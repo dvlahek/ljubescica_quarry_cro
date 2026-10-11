@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.*
+*.log
+.DS_Store
+quarry_timelapse_science_qc_v8/
+benchmark_manual_and_pseudo_*.csv
+benchmark_manual_and_pseudo_*.json
+benchmark_manual_and_pseudo_*.tex
